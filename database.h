@@ -4,4 +4,13 @@
 
 Stworzenie* dodaj_stworzenie(Stworzenie* kolejne);
 
+Stworzenie* usun_stworzenie(Stworzenie* glowa);
+
+void szukanie_po_imieniu(Stworzenie* glowa, char* szukane_imie);
+
+void szukanie_po_gatunku(Stworzenie* glowa, int szukany_gatunek);
+
+void zapisywanie_do_pliku(Stworzenie* glowa, const char* nazwa_pliku);
+Stworzenie* wczytywanie_z_pliku(const char* nazwa_pliku);
+
 #endif

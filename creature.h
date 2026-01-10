@@ -1,7 +1,7 @@
 #ifndef CREATURE_H
 #define CREATURE_H
 
-typedef enum {
+typedef enum  Status{
     STABILNY,
     NIESPOKOJNY,
     AGRESYWNY,
@@ -9,7 +9,7 @@ typedef enum {
     KWARANTANNA
 } Status;
 
-typedef enum{
+typedef enum Gatunek{
     SMOK,
     GRYF,
     FENIKS,
