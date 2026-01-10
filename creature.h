@@ -22,6 +22,7 @@ typedef struct Stworzenie {
     Gatunek gatunek;
     int moc_magiczna;
     int poziom_zagrozenia;
+    char data_przybycia[11];
     char data_karmienia[11];
     Status status;
 

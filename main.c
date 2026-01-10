@@ -13,6 +13,8 @@ int main(){
     printf("2 - Wyswietl liste stworzen\n");
     printf("3 - Usun ostatnio dodane stworzenie\n");
     printf("4 - Wyszukaj...\n");
+    printf("5 - Usun pernamentnie konkretne stworzenie\n");
+    printf("6 - Posortuj liste\n");
     printf("0 - Koniec programu\n");
     printf("Wybor: \n");
 
@@ -46,10 +48,30 @@ int main(){
         }
         else if(wybor_szukania == 2){
           int gat;
-          printf("Gatunek do wyświetlenia (1 - SMOK, 2 - GRYF, 3 - FENIKS, 4 - PEGAZ, 5 - MANTYKORA): ");
+          printf("1 - SMOK\n");
+          printf("2 - GRYF\n");
+          printf("3 - FENIKS\n");
+          printf("4 - PEGAZ\n");
+          printf("5 - MANTYKORA\n");
+          printf("Gatunek do wyświetlenia: ");
           scanf("%d", &gat);
           szukanie_po_gatunku(lista_stworzen, gat);
         }
+        break;
+        case 5:
+        char imie_usun[101];
+        printf("Podaj imie stowrzenia do usuniecia: ");
+        scanf("%s", imie_usun);
+        lista_stworzen = usuwanie_stworzenia_prem(lista_stworzen, imie_usun);
+        break;
+        case 6:
+        int zmien;
+        printf("1 - Alfabetycznie\n");
+        printf("2 - Wedlug poziomu mocy\n");
+        printf("3 - Wedlug poziomu zagrozenia\n");
+        printf("Wybierz w jaki sposob ma byc posortowana lista stowrzen: ");
+        scanf("%d", &zmien);
+        sortowanie_listy(lista_stworzen, zmien);
         break;
         case 0:
         zapisywanie_do_pliku(lista_stworzen, "bazastworzen.txt");

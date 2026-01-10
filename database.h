@@ -13,4 +13,7 @@ void szukanie_po_gatunku(Stworzenie* glowa, int szukany_gatunek);
 void zapisywanie_do_pliku(Stworzenie* glowa, const char* nazwa_pliku);
 Stworzenie* wczytywanie_z_pliku(const char* nazwa_pliku);
 
+Stworzenie* usuwanie_stworzenia_prem(Stworzenie* glowa, char* imie_do_usuniecia);
+
+void sortowanie_listy(Stworzenie* glowa, int tryb);
 #endif
