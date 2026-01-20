@@ -4,19 +4,55 @@
 #include "database.h"
 #include "ui.h"
 
+//określanie statusu stworzenia na podstawie mocy i zagrożenia
+Status sugerowanie_statusu(char* data_przyb, int moc, int zagrozenie){
+    int rok_przybycia = atoi(data_przyb);
+    Status wynik;
+    if(rok_przybycia >= 2026){
+        wynik = KWARANTANNA;
+    } else if((zagrozenie > 10) || (moc > 80 && zagrozenie > 5)){
+        wynik = NIEBEZPIECZNY;
+    } else if((zagrozenie >= 6) || (moc > 70)){
+        wynik = AGRESYWNY;
+    } else if(zagrozenie >= 3 || (moc > 50)){
+        wynik = NIESPOKOJNY;
+    } else {
+        wynik = STABILNY;
+    }
+    return wynik;
+}
+
 //dodawanie stworzen do listy
 Stworzenie* dodaj_stworzenie(Stworzenie* glowa){
-    Stworzenie* nowy = (Stworzenie*)malloc(sizeof(Stworzenie));
+    char wprowadzane_imie[101];
+    printf("Podaj imie stworzenia: \n");
+    scanf("%100s", wprowadzane_imie);
 
+    Stworzenie* temp = glowa;
+    while(temp != NULL){
+        if(strcmp(wprowadzane_imie, temp->imie) == 0){
+            printf("Stowrzenie o imieniu %s już istnieje\n", wprowadzane_imie);
+            return glowa;
+        }
+        temp = temp->next;
+    }
+
+    Stworzenie* nowy = (Stworzenie*)malloc(sizeof(Stworzenie));
     if(nowy == NULL){
-        printf("Brak pamięci\n");
+        printf("Brak pamieci\n");
         return glowa;
     }
-    printf("Podaj imie stworzenia: \n");
-    scanf("%100s", nowy->imie);
+
+    strcpy(nowy->imie, wprowadzane_imie);
 
     printf("Podaj moc tego stworzenia: \n");
     scanf("%d", &nowy->moc_magiczna);
+    if(nowy->moc_magiczna < 0){
+        nowy->moc_magiczna = 0;
+    }
+    if(nowy->moc_magiczna > 100){
+        nowy->moc_magiczna = 100;
+    }
 
     int wybor_gatunku;
     printf("1 - SMOK\n");
@@ -45,25 +81,63 @@ Stworzenie* dodaj_stworzenie(Stworzenie* glowa){
         nowy->gatunek = MANTYKORA;
         break;
         default:
-        printf("Podany gatunek nie widnieje w bazie. Przypisuje automatycznie SMOK\n");
-        nowy->gatunek = SMOK;
+        printf("Podany gatunek nie widnieje w bazie. Przypisuje automatycznie NIEZINDENTYFIKOWANY\n");
+        nowy->gatunek = NIEZIDENTYFIKOWANY;
     }
 
-    printf("Podaj poziom zagrozenia: \n");
-    scanf("%d", &nowy->poziom_zagrozenia);
+    int wyb_plci;
+    printf("1 - Zenska\n");
+    printf("2 - Meska\n");
+    printf("3 - Niezindentyfikowano\n");
+    printf("Wybierz plec stworzenia: ");
+    scanf("%d", &wyb_plci);
 
-    printf("Podaj date przybycia: \n");
+    switch(wyb_plci){
+        case 1:
+        nowy->plec = ZENSKA;
+        break;
+        case 2:
+        nowy->plec = MESKA;
+        break;
+        case 3:
+        nowy->plec = NIEZIDENTYFIKOWANY;
+        break;
+        default:
+        printf("Podana plec nie widnieje w bazie. Przypisuje automatycznie NIEZIDENTYFIKOWANY\n");
+        nowy->plec = NIEZIDENTYFIKOWANE;
+    }
+
+    printf("Podaj poziom zagrozenia (sugerowany zakres: 0-10, powyzej niego status stworzenia automatycznie bedzie zapisany jako NIEBIEZPIECZNY): \n");
+    scanf("%d", &nowy->poziom_zagrozenia);
+    if(nowy->poziom_zagrozenia < 0){
+        nowy->poziom_zagrozenia = 0;
+    } else if(nowy->poziom_zagrozenia > 15){
+        nowy->poziom_zagrozenia = 15;
+    }
+
+    printf("Podaj date przybycia (rrrr-mm-dd): \n");
     scanf("%10s", nowy->data_przybycia);
 
-    printf("Podaj ostatnia date karmienia: \n");
+    printf("Podaj ostatnia date karmienia (rrrr-mm-dd): \n");
     scanf("%10s", nowy->data_karmienia);
 
+    Status sugerowany = sugerowanie_statusu(nowy->data_przybycia, nowy->moc_magiczna, nowy->poziom_zagrozenia);
+
+    printf("Na podstawie analizy podanych wyzej danych sugerowany status stowrzenia to: %s\n", nazwa_statusu(sugerowany));
+    printf("Czy chcesz go zastosowac?\n");
+    printf("1 - Tak\n");
+    printf("2 - Nie, chce wybrac status recznie\n");
+    int decyzja;
+    scanf("%d", &decyzja);
+    if(decyzja == 1){
+        nowy->status = sugerowany;
+    } else if(decyzja == 2){
     int wybor_statusu;
     printf("1 - Stabilny\n");
     printf("2 - Niespokojny\n");
     printf("3 - Agresywny\n");
     printf("4 - Niebezpieczny\n");
-    printf("5 - Kwarantanna");
+    printf("5 - Kwarantanna\n");
     printf("Wybierz status storzenia: \n");
 
     scanf(" %d", &wybor_statusu);
@@ -85,43 +159,104 @@ Stworzenie* dodaj_stworzenie(Stworzenie* glowa){
         nowy->status = KWARANTANNA;
         break;
         default:
-        printf("Nie ma takiej opcji, automaycznie przypisuje stan STABILNY\n");
-        nowy->status = STABILNY;
+        printf("Nie ma takiej opcji, automaycznie przypisuje stan KWARANTANNA\n");
+        nowy->status = KWARANTANNA;
     }
-
+    } else{
+        printf("Nie ma mozliwosci takiego wyboru/n");
+    }
     nowy->next = glowa;
 
     return nowy;
 }
 
-// usuwanie ostatniego stworzenia z listy
-Stworzenie* usun_stworzenie(Stworzenie* glowa){
-    if (glowa == NULL){
-        printf("Nie ma zadnych stworzen w bazie\n");
-        return NULL;
-    }
-    Stworzenie* temp = glowa;
-    glowa = glowa->next;
-    free(temp);
-    return glowa;
-}
+// funkcja umożliwiająca edytowanie możliwych do tego danych
+void edycja_stworzenia(Stworzenie* glowa, char* imie_szukane){
+    Stworzenie* akt = glowa;
+    Status nowa_sugestia;
+    while(akt != NULL){
+        if(strcmp(akt->imie, imie_szukane) == 0){
+            printf("Edytowane stowrzenie: %s\n", akt->imie);
+            printf("1 - Moc magiczna (aktualnie: %d)\n", akt->moc_magiczna);
+            printf("2 - Poziom zgrozenia (aktualnie: %d)\n", akt->poziom_zagrozenia);
+            printf("3 - Status (aktualnie: %d)\n", akt->status + 1);
+            printf("4 - Data karmienia (ostania: %s)\n", akt->data_karmienia);
+            printf("0 - Wyjscie\n");
+            printf("Wybierz co konkretnie chcesz edytować: ");
 
-//funkcja do szukania po imieniu stworzenia
-void szukanie_po_imieniu(Stworzenie* glowa, char* szukane_imie){
-    Stworzenie* aktualne = glowa;
-    int znaleziono = 0;
-
-    while(aktualne != NULL){
-        if(strcmp(aktualne->imie, szukane_imie) == 0){
-            printf("Znaleziono: %s | Moc: %d\n", aktualne->imie, aktualne->moc_magiczna);
-            znaleziono = 1;
+            int wybor_edycji;
+            scanf("%d", &wybor_edycji);
+            switch(wybor_edycji){
+                case 1:
+                int m;
+                printf("Podaj nowa moc: ");
+                scanf("%d", &m);
+                if(m < 0){
+                    m = 0;
+                } else if(m > 100){
+                    m = 100;
+                }
+                akt->moc_magiczna = m;
+                nowa_sugestia = sugerowanie_statusu(akt->data_przybycia, akt->moc_magiczna, akt->poziom_zagrozenia);
+                printf("Zmieniono moc. Sugerowany nowy status to: %s\n", nazwa_statusu(nowa_sugestia));
+                printf("Czy chcesz go zmienic?\n");
+                printf("1 - Tak\n");
+                printf("0 - Nie\n");
+                int dec;
+                scanf("%d", &dec);
+                if(dec == 1){
+                    akt->status = nowa_sugestia;
+                }
+                break;
+                case 2:
+                printf("Podaj nowy poziom zagrozenia (0-10): ");
+                int p;
+                scanf("%d", &p);
+                if(p < 0){
+                    p = 0;
+                }
+                if(p > 15){
+                    p = 15;
+                } 
+                akt->poziom_zagrozenia = p;
+                nowa_sugestia = sugerowanie_statusu(akt->data_przybycia, akt->moc_magiczna, akt->poziom_zagrozenia);
+                printf("Zmieniono poziom zagrozenia. Sugerowany nowy status to: %s\n", nazwa_statusu(nowa_sugestia));
+                printf("Czy chcesz go zmienic?\n");
+                printf("1 - Tak\n");
+                printf("0 - Nie\n");
+                int d;
+                scanf("%d", &d);
+                if(d == 1){
+                    akt->status = nowa_sugestia;
+                }
+                break;
+                case 3:
+                printf("1 - Stabilny\n");
+                printf("2 - Niespokojny\n");
+                printf("3 - Agresywny\n");
+                printf("4 - Niebezpieczny\n");
+                printf("5 - Kwarantanna\n");
+                printf("Wybierz nowy status storzenia: \n");
+                int s;
+                scanf("%d", &s);
+                akt->status = (Status)(s-1);
+                break;
+                case 4:
+                printf("Podaj nowa date karmienia (rrrr-mm-dd): ");
+                scanf("%10s", akt->data_karmienia);
+                break;
+                case 0:
+                return;
+                break;
+                default:
+                printf("Wybrales opcje, ktorej nie da sie edytowac\n");
+                return;
+            }
+            return;
         }
-        aktualne = aktualne->next;
+        akt = akt->next;
     }
-
-    if(!znaleziono){
-        printf("Nie ma w bazie stworzenia o takim imieniu\n", szukane_imie);
-    }
+    printf("Nie znaleziono takiego stowrzenia jak: %s\n", imie_szukane);
 }
 
 //funkcja do szukania po gatunku
@@ -134,7 +269,9 @@ void szukanie_po_gatunku(Stworzenie* glowa, int szukany_gatunek){
     while(aktualne != NULL){
         if((int)aktualne->gatunek == (szukany_gatunek - 1)){
             char* tekst_gatunku = nazwa_gatunku(aktualne->gatunek);
-        printf("[%s] Imie: %-15s | Moc: %d\n", tekst_gatunku, aktualne->imie, aktualne->moc_magiczna);
+            char* tekst_plci = nazwa_plci(aktualne->plec);
+            char* tekst_status = nazwa_statusu(aktualne->status);
+        printf("[%s, Plec: %s] Imie: %-15s | Moc: %d | Poziom zagrozenia: %d | Data przybycia: %s | Data karmienia: %s | Status: %s\n", tekst_gatunku, tekst_plci, aktualne->imie, aktualne->moc_magiczna, aktualne->poziom_zagrozenia, aktualne->data_przybycia, aktualne->data_karmienia, tekst_status);
         znaleziono = 1;
     }
     aktualne = aktualne->next;
@@ -142,6 +279,27 @@ void szukanie_po_gatunku(Stworzenie* glowa, int szukany_gatunek){
 if(!znaleziono){
     printf("Brak stworzen tego gatunku\n");
 }
+}
+
+//funkcja do szukania po imieniu
+void szukanie_po_imieniu(Stworzenie* glowa, char* szukane_imie) {
+    Stworzenie* aktualne = glowa;
+    int znaleziono = 0;
+
+    while (aktualne != NULL) {
+        if (strcmp(aktualne->imie, szukane_imie) == 0) {
+            char* tekst_gatunku = nazwa_gatunku(aktualne->gatunek);
+            printf("Imie: %s | Gatunek: %s\n", aktualne->imie, tekst_gatunku);
+            printf("Moc: %d | Zagrozenie: %d\n", aktualne->moc_magiczna, aktualne->poziom_zagrozenia);
+            printf("Status: %d | Ostatnie karmienie: %s\n", aktualne->status + 1, aktualne->data_karmienia);
+            znaleziono = 1;
+        }
+        aktualne = aktualne->next;
+    }
+
+    if (!znaleziono) {
+        printf("Nie znaleziono stworzenia o imieniu: %s\n", szukane_imie);
+    }
 }
 
 //funkcje do wczytywania i zapisywania w pliku
@@ -154,12 +312,15 @@ void zapisywanie_do_pliku(Stworzenie* glowa, const char* nazwa_pliku){
 
     Stworzenie* aktualne = glowa;
     while(aktualne != NULL){
-        fprintf(plik, "%s %d %d %d %s %s %d\n", aktualne->imie, aktualne->moc_magiczna, aktualne->gatunek, aktualne->poziom_zagrozenia,aktualne->data_przybycia, aktualne->data_karmienia, aktualne->status);
+        if(strlen(aktualne->imie) > 0){
+        fprintf(plik, "%s %d %d %d %d %s %s %d\n", aktualne->imie, aktualne->moc_magiczna, aktualne->gatunek, aktualne->plec, aktualne->poziom_zagrozenia,aktualne->data_przybycia, aktualne->data_karmienia, aktualne->status);
+        }
         aktualne = aktualne->next;
+    
     }
-
     fclose(plik);
     printf("Zapisano do pliku: %s\n", nazwa_pliku);
+    
 }
 
 Stworzenie* wczytywanie_z_pliku(const char* nazwa_pliku){
@@ -171,16 +332,17 @@ Stworzenie* wczytywanie_z_pliku(const char* nazwa_pliku){
 
     Stworzenie* nowa_glowa = NULL;
     char imie[101];
-    int moc, gat, poz, stat;
+    int moc, gat, sex, poz, stat;
     char data[11];
     char data_przyb[11];
 
-    while(fscanf(plik, "%100s %d %d %d %10s %10s %d", imie, &moc, &gat, &poz, data_przyb, data, &stat) == 7){
+    while(fscanf(plik, "%100s %d %d %d %d %10s %10s %d", imie, &moc, &gat, &sex, &poz, data_przyb, data, &stat) == 8){
         Stworzenie* nowy = (Stworzenie*)malloc(sizeof(Stworzenie));
         if(nowy != NULL){
             strcpy(nowy->imie, imie);
             nowy->moc_magiczna = moc;
             nowy->gatunek = (Gatunek)gat;
+            nowy->plec = (Plec)sex;
             nowy->poziom_zagrozenia = poz;
             strcpy(nowy->data_przybycia, data_przyb);
             strcpy(nowy->data_karmienia, data);
@@ -234,6 +396,40 @@ Stworzenie* usuwanie_stworzenia_prem(Stworzenie* glowa, char* imie_do_usuniecia)
     return glowa;
 }
 
+//fukncja do ususnięcia całego gatunku (bez NIEBEZPIECZNY)
+Stworzenie* usuwanie_calego_gatunku(Stworzenie* glowa, int gatunek_do_usuniecia){
+    Stworzenie* akt = glowa;
+    Stworzenie* poprzed = NULL;
+    int licznik = 0;
+
+    while(akt != NULL){
+        if((int)akt->gatunek == (gatunek_do_usuniecia - 1)){
+            if(akt->status == NIEBEZPIECZNY){
+                printf("Nie można usunąć %s ze wzgledu na status NIEBEZPIECZNY\n", akt->imie);
+                poprzed = akt;
+                akt = akt->next;
+                continue;
+            }
+
+            Stworzenie* do_usuniecia = akt;
+            if(poprzed == NULL){
+                glowa = akt->next;
+                akt = glowa;
+            } else{
+                poprzed->next = akt->next;
+                akt = poprzed->next;
+            }
+            free(do_usuniecia);
+            licznik++;
+        } else {
+            poprzed = akt;
+            akt = akt->next;
+        }
+    }
+    printf("Usunieto zbiorowo %d stworzen\n", licznik);
+    return glowa;
+}
+
 //wszelakie sortowanie (do wyboru użytkownika)
 void sortowanie_listy(Stworzenie* glowa, int tryb){
     if(glowa == NULL) return;
@@ -273,6 +469,11 @@ void sortowanie_listy(Stworzenie* glowa, int tryb){
                 ptr1->gatunek = ptr1->next->gatunek;
                 ptr1->next->gatunek = temp_gatunek;
 
+                //według płci
+                Plec temp_plec = ptr1->plec;
+                ptr1->plec = ptr1->next->plec;
+                ptr1->next->plec = temp_plec;
+
                 //wedlug zagrożenia
                 int temp_zagrozenie = ptr1->poziom_zagrozenia;
                 ptr1->poziom_zagrozenia = ptr1->next->poziom_zagrozenia;
@@ -305,4 +506,13 @@ void sortowanie_listy(Stworzenie* glowa, int tryb){
     }while(zamiana);
 
     printf("Lista została posortowana\n");
+}
+
+void zwolnij(Stworzenie* glowa){
+    Stworzenie* temp;
+    while(glowa != NULL){
+        temp = glowa;
+        glowa = glowa->next;
+        free(temp);
+    }
 }

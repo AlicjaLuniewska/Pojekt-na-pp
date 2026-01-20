@@ -9,17 +9,25 @@ typedef enum  Status{
     KWARANTANNA
 } Status;
 
+typedef enum Plec{
+    ZENSKA,
+    MESKA,
+    NIEZIDENTYFIKOWANE 
+}Plec;
+
 typedef enum Gatunek{
     SMOK,
     GRYF,
     FENIKS,
     PEGAZ,
-    MANTYKORA
+    MANTYKORA,
+    NIEZIDENTYFIKOWANY
 } Gatunek;
 
 typedef struct Stworzenie {
     char imie[101];
     Gatunek gatunek;
+    Plec plec;
     int moc_magiczna;
     int poziom_zagrozenia;
     char data_przybycia[11];

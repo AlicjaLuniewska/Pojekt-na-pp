@@ -21,7 +21,25 @@
             case MANTYKORA:
             return "Mantykora";
             break;
+            case NIEZIDENTYFIKOWANY:
+            return "Niezidentyfikowany";
             default: 
+            return "Nieznany";
+        }
+    }
+
+    char* nazwa_plci(enum Plec p){
+        switch(p){
+            case ZENSKA:
+            return "Zenska";
+            break;
+            case MESKA:
+            return "Meska";
+            break;
+            case NIEZIDENTYFIKOWANE:
+            return "Niezidentyfikowane";
+            break;
+            default:
             return "Nieznany";
         }
     }
@@ -66,8 +84,9 @@ void wyswietl_liste(Stworzenie* glowa){
 
         char* gatunek_tekst = nazwa_gatunku(aktualne->gatunek);
         char* status_tekst = nazwa_statusu(aktualne->status);
+        char* plec_tekst = nazwa_plci(aktualne->plec);
 
-        printf("%d. [%s] Imie: %-15s | Moc: %d | Poziom zagrozenia: %d | Data ostatniego karmienia: %s | Status: %s\n", licznik, gatunek_tekst, aktualne->imie, aktualne->moc_magiczna, aktualne->poziom_zagrozenia, aktualne->data_karmienia, status_tekst);
+        printf("%d. [%s, Plec:%s] Imie: %-15s | Moc: %d | Poziom zagrozenia: %d | Data przybycia: %s | Data ostatniego karmienia: %s | Status: %s\n", licznik, gatunek_tekst, plec_tekst, aktualne->imie, aktualne->moc_magiczna, aktualne->poziom_zagrozenia, aktualne->data_przybycia, aktualne->data_karmienia, status_tekst);
 
         aktualne = aktualne->next;
     }
@@ -75,5 +94,12 @@ void wyswietl_liste(Stworzenie* glowa){
     printf("Razem znaleziono: %d stworzen\n", licznik);
 }
    
-
+int sprawdzanie_wprowadzania(){
+    int liczba;
+    while(scanf("%d", &liczba) != 1){
+        printf("Zle podane dane. Sprobuj ponownie\n");
+        while(getchar() != '\n');
+    }
+    return liczba;
+}
 
